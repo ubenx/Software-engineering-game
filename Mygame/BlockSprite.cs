@@ -8,7 +8,7 @@ namespace Mygame
         private int width;
         private int height;
 
-        public BlockSprite(Texture2D texture, Vector2 position, int width = 128, int height = 128)
+        public BlockSprite(Texture2D texture, Vector2 position, int width = 200, int height = 100)
             : base(texture, position)
         {
             this.width = width;

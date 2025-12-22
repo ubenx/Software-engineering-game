@@ -18,14 +18,28 @@ namespace Mygame
         private int counter;
         private double secondCounter;
         private int schuifOp_X = 0;
+        private SpriteEffects spriteEffect = SpriteEffects.None;
 
         public Player(Texture2D texture, Vector2 position, List<Sprite> collisionGroup) : base(texture, position)
         {
             this.collisionGroup = collisionGroup;
         }
 
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            // Use the 7+ argument overload to include SpriteEffects
+            spriteBatch.Draw(
+                texture,
+                Rect,
+                SourceRectangle,
+                Color.White,
+                0f,              // Rotation
+                Vector2.Zero,    // Origin (Top-left)
+                spriteEffect,    // Your SpriteEffects
+                0f               // Layer Depth
+            );
+        }
 
-        
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -40,6 +54,7 @@ namespace Mygame
                 changeX += 5;
                 //voor animatie
                 beweegt = true;
+                spriteEffect = SpriteEffects.None;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
@@ -47,6 +62,7 @@ namespace Mygame
                 changeX -= 5;
                 //voor animatie
                 beweegt = true;
+                spriteEffect = SpriteEffects.FlipHorizontally;
             }
             position.X += changeX;
 

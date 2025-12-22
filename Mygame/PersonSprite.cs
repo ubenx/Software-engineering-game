@@ -22,8 +22,8 @@ namespace Mygame
         }
 
         public override void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(texture, Rect, SourceRectangle, Color.White);
-        }
+{
+    spriteBatch.Draw(texture, Rect, SourceRectangle, Color.White);
+}
     }
 }
