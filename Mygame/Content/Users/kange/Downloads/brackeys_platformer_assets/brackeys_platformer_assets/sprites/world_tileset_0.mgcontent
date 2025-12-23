@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Users/kange/Downloads/brackeys_platformer_assets/brackeys_platformer_assets/sprites/world_tileset.png</SourceFile>
+  <SourceTime>2025-11-18T11:19:12.4879823+01:00</SourceTime>
+  <DestFile>C:/Dev/Mygame/Mygame/Content/bin/DesktopGL/Content/../../../../Users/kange/Downloads/brackeys_platformer_assets/brackeys_platformer_assets/sprites/world_tileset_0.xnb</DestFile>
+  <DestTime>2025-12-23T12:37:55.9079906+01:00</DestTime>
+  <Importer>TextureImporter</Importer>
+  <ImporterTime>2025-06-02T12:31:02+02:00</ImporterTime>
+  <Processor>TextureProcessor</Processor>
+  <ProcessorTime>2025-06-02T12:31:02+02:00</ProcessorTime>
+  <Parameters>
+    <Key>ColorKeyColor</Key>
+    <Value>0,0,0,0</Value>
+  </Parameters>
+  <Parameters>
+    <Key>ColorKeyEnabled</Key>
+    <Value>True</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

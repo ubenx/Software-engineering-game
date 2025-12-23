@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Dev/GameAssets/Coconut Adventure/world_tileset.tsx</SourceFile>
+  <SourceTime>2025-12-23T14:37:20.2748037+01:00</SourceTime>
+  <DestFile>C:/Dev/Mygame/Mygame/Content/bin/DesktopGL/../../../GameAssets/Coconut Adventure/world_tileset_0.xnb</DestFile>
+  <DestTime>2025-12-23T17:43:45.7296307+01:00</DestTime>
+  <Importer>TiledMapTilesetImporter</Importer>
+  <ImporterTime>2025-11-29T09:05:08+01:00</ImporterTime>
+  <Processor>TiledMapTilesetProcessor</Processor>
+  <ProcessorTime>2025-11-29T09:05:08+01:00</ProcessorTime>
+  <Dependencies>
+    <string>C:\Dev\GameAssets\Coconut Adventure\world_tileset.png</string>
+  </Dependencies>
+  <BuildAsset>
+    <string>C:/Dev/Mygame/Mygame/Content/bin/DesktopGL/../../../GameAssets/Coconut Adventure/world_tileset_1.xnb</string>
+  </BuildAsset>
+  <BuildOutput />
+</PipelineBuildEvent>

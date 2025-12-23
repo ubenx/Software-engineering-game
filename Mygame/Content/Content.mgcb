@@ -10,8 +10,15 @@
 
 #-------------------------------- References --------------------------------#
 
+/reference:../bin/Debug/net8.0/MonoGame.Extended.Content.Pipeline.dll
+/reference:../bin/Debug/net8.0/MonoGame.Extended.dll
 
 #---------------------------------- Content ---------------------------------#
+
+#begin ../../../GameAssets/Coconut Adventure/Level1.tmx
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
+/build:../../../GameAssets/Coconut Adventure/Level1.tmx;Level1.tmx
 
 #begin GonAngry.png
 /importer:TextureImporter
@@ -37,6 +44,18 @@
 /processorParam:TextureFormat=Color
 /build:hxh.jpg
 
+#begin Level1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Level1.png;Level1Pic.png
+
 #begin Walk2.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -48,4 +67,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Walk2.png
+
+#begin world_tileset.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:world_tileset.png
+
+
 

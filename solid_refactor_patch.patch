@@ -1,0 +1,471 @@
+--- a/Mygame/Game1.cs
++++ b/Mygame/Game1.cs
+@@ -1,24 +1,16 @@
+-using Microsoft.Xna.Framework;
++﻿using Microsoft.Xna.Framework;
+ using Microsoft.Xna.Framework.Graphics;
+ using Microsoft.Xna.Framework.Input;
+-using System.Collections.Generic;
+-using System.Diagnostics;
++using Mygame.Core.States;
+ 
+ namespace Mygame
+ {
+     public class Game1 : Game
+     {
+-        private GraphicsDeviceManager _graphics;
++        private readonly GraphicsDeviceManager _graphics;
+         private SpriteBatch _spriteBatch;
+ 
+-        Player player;
+-
+-
+-        // add picture to game
+-        //Texture2D texture;
+-
+-        // Sprites
+-        List<Sprite> sprites;
++        private IGameState _currentState;
+ 
+         public Game1()
+         {
+@@ -26,84 +18,38 @@
+ 
+             _graphics.PreferredBackBufferWidth = 1580;
+             _graphics.PreferredBackBufferHeight = 1020;
+-
+             _graphics.ApplyChanges();
+ 
+             Content.RootDirectory = "Content";
+             IsMouseVisible = true;
+         }
+ 
+-        protected override void Initialize()
++        protected override void LoadContent()
+         {
+-            // TODO: Add your initialization logic here
++            _spriteBatch = new SpriteBatch(GraphicsDevice);
+ 
+-            base.Initialize();
+-
+-            
++            // Start in menu
++            ChangeState(new StartState(this));
+         }
+ 
+-        protected override void LoadContent()
++        public void ChangeState(IGameState next)
+         {
+-            sprites = new List<Sprite>();
+-            _spriteBatch = new SpriteBatch(GraphicsDevice);
++            _currentState?.Unload();
+ 
+-            // TODO: use this.Content to load your game content here
+-
+-            // add picture to game
+-            //texture = Content.Load<Texture2D>("hxh");
+-
+-            //Texture2D texture = Content.Load<Texture2D>("hxh");
+-
+-            Texture2D gonTexture = Content.Load<Texture2D>("GonAngry");
+-            Texture2D playerTexture = Content.Load<Texture2D>("Walk2");
+-            sprites.Add(new BlockSprite(gonTexture, new Vector2(100, 100)));
+-            sprites.Add(new BlockSprite(gonTexture, new Vector2(400, 200)));
+-            sprites.Add(new BlockSprite(gonTexture, new Vector2(700, 300)));
+-
+-            player = new Player(playerTexture, new Vector2(200, 200), sprites);
+-            sprites.Add(player);
+-
++            _currentState = next;
++            _currentState.LoadContent(Content);
+         }
+ 
+         protected override void Update(GameTime gameTime)
+         {
+-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
++            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
++                Keyboard.GetState().IsKeyDown(Keys.Escape))
++            {
+                 Exit();
++                return;
++            }
+ 
+-            //if(!space_pressed && Keyboard.GetState().IsKeyDown(Keys.Space))
+-            //{
+-            //    space_pressed = true;
+-            //    Debug.WriteLine("Space pressed");
+-            //}
+-
+-            //if(Keyboard.GetState().IsKeyUp(Keys.Space))
+-            //{
+-            //    space_pressed = false;
+-            //}
+-
+-            //List<PersonSprite> killList = new();
+-
+-            //foreach (var sprite in sprites)
+-            //{
+-            //    sprite.Update(gameTime);
+-
+-            //    if(sprite != player && sprite.Rect.Intersects(player.Rect))
+-            //    {
+-            //        killList.Add(sprite);
+-
+-            //    }
+-            //}
+-
+-            //foreach (var sprite in killList)
+-            //{
+-            //    sprites.Remove(sprite);
+-            //}
+-
+-            foreach (var sprite in sprites)
+-            {
+-                sprite.Update(gameTime); 
+-            }
+-            
++            _currentState?.Update(gameTime);
+ 
+             base.Update(gameTime);
+         }
+@@ -112,16 +58,9 @@
+         {
+             GraphicsDevice.Clear(Color.CornflowerBlue);
+ 
+-            // TODO: Add your drawing code here
+-
+-            // add picture to game
+             _spriteBatch.Begin();
+ 
+-            foreach (var sprite in sprites)
+-            {
+-                sprite.Draw(_spriteBatch);
+-            }
+- 
++            _currentState?.Draw(_spriteBatch);
+ 
+             _spriteBatch.End();
+ 
+
+diff --git a/Mygame/Core/States/IGameState.cs b/Mygame/Core/States/IGameState.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/States/IGameState.cs
+@@ -0,0 +1,14 @@
++﻿using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Content;
++using Microsoft.Xna.Framework.Graphics;
++
++namespace Mygame.Core.States
++{
++    public interface IGameState
++    {
++        void LoadContent(ContentManager content);
++        void Update(GameTime gameTime);
++        void Draw(SpriteBatch spriteBatch);
++        void Unload();
++    }
++}
+
+diff --git a/Mygame/Core/States/StartState.cs b/Mygame/Core/States/StartState.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/States/StartState.cs
+@@ -0,0 +1,51 @@
++﻿using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Content;
++using Microsoft.Xna.Framework.Graphics;
++using Microsoft.Xna.Framework.Input;
++
++namespace Mygame.Core.States
++{
++    /// <summary>
++    /// Minimal start screen: shows a texture and waits for Enter.
++    /// No SpriteFont dependency (keeps Content simple).
++    /// </summary>
++    public sealed class StartState : IGameState
++    {
++        private readonly Mygame.Game1 _game;
++
++        private Texture2D _bg;
++        private Rectangle _dst;
++
++        public StartState(Mygame.Game1 game)
++        {
++            _game = game;
++        }
++
++        public void LoadContent(ContentManager content)
++        {
++            // Reuse existing content in your mgcb
++            _bg = content.Load<Texture2D>("hxh");
++            _dst = new Rectangle(0, 0, 1580, 1020);
++        }
++
++        public void Update(GameTime gameTime)
++        {
++            var ks = Keyboard.GetState();
++            if (ks.IsKeyDown(Keys.Enter))
++            {
++                _game.ChangeState(new PlayState(_game, levelIndex: 1));
++            }
++        }
++
++        public void Draw(SpriteBatch spriteBatch)
++        {
++            if (_bg != null)
++                spriteBatch.Draw(_bg, _dst, Color.White);
++        }
++
++        public void Unload()
++        {
++            // ContentManager owns textures; nothing to dispose here.
++        }
++    }
++}
+
+diff --git a/Mygame/Core/States/PlayState.cs b/Mygame/Core/States/PlayState.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/States/PlayState.cs
+@@ -0,0 +1,69 @@
++﻿using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Content;
++using Microsoft.Xna.Framework.Graphics;
++using System.Linq;
++using Mygame.Core.Levels;
++
++namespace Mygame.Core.States
++{
++    public sealed class PlayState : IGameState
++    {
++        private readonly Mygame.Game1 _game;
++        private readonly int _startLevelIndex;
++
++        private readonly ILevelFactory _levelFactory = new LevelFactory();
++        private Level _level;
++
++        public PlayState(Mygame.Game1 game, int levelIndex)
++        {
++            _game = game;
++            _startLevelIndex = levelIndex;
++        }
++
++        public void LoadContent(ContentManager content)
++        {
++            _level = _levelFactory.Create(_startLevelIndex, content);
++        }
++
++        public void Update(GameTime gameTime)
++        {
++            if (_level == null) return;
++
++            foreach (var s in _level.Sprites.ToList())
++                s.Update(gameTime);
++
++            // Win condition: player enters finish zone
++            var player = _level.Sprites.OfType<Mygame.Player>().FirstOrDefault();
++            if (player != null && player.Rect.Intersects(_level.FinishZone))
++            {
++                int next = _level.Index + 1;
++                if (next > 2)
++                    _game.ChangeState(new StartState(_game)); // finished all levels -> back to menu
++                else
++                    _game.ChangeState(new PlayState(_game, next));
++            }
++
++            // "Death" condition placeholder: fall below screen
++            if (player != null && player.Rect.Y > 1200)
++            {
++                _game.ChangeState(new GameOverState(_game));
++            }
++        }
++
++        public void Draw(SpriteBatch spriteBatch)
++        {
++            if (_level == null) return;
++
++            foreach (var s in _level.Sprites)
++                s.Draw(spriteBatch);
++
++            // Draw finish zone as a simple colored rectangle (no texture needed)
++            // Note: SpriteBatch can't draw primitives directly; so we skip drawing it for now.
++            // The finish zone still works for collision/win.
++        }
++
++        public void Unload()
++        {
++        }
++    }
++}
+
+diff --git a/Mygame/Core/States/GameOverState.cs b/Mygame/Core/States/GameOverState.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/States/GameOverState.cs
+@@ -0,0 +1,51 @@
++﻿using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Content;
++using Microsoft.Xna.Framework.Graphics;
++using Microsoft.Xna.Framework.Input;
++
++namespace Mygame.Core.States
++{
++    /// <summary>
++    /// Minimal game over screen: shows GonAngry texture.
++    /// Press R to retry level 1, M for menu.
++    /// </summary>
++    public sealed class GameOverState : IGameState
++    {
++        private readonly Mygame.Game1 _game;
++
++        private Texture2D _tex;
++        private Rectangle _dst;
++
++        public GameOverState(Mygame.Game1 game)
++        {
++            _game = game;
++        }
++
++        public void LoadContent(ContentManager content)
++        {
++            _tex = content.Load<Texture2D>("GonAngry");
++            _dst = new Rectangle(0, 0, 1580, 1020);
++        }
++
++        public void Update(GameTime gameTime)
++        {
++            var ks = Keyboard.GetState();
++
++            if (ks.IsKeyDown(Keys.R))
++                _game.ChangeState(new PlayState(_game, levelIndex: 1));
++
++            if (ks.IsKeyDown(Keys.M))
++                _game.ChangeState(new StartState(_game));
++        }
++
++        public void Draw(SpriteBatch spriteBatch)
++        {
++            if (_tex != null)
++                spriteBatch.Draw(_tex, _dst, Color.White);
++        }
++
++        public void Unload()
++        {
++        }
++    }
++}
+
+diff --git a/Mygame/Core/Levels/Level.cs b/Mygame/Core/Levels/Level.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/Levels/Level.cs
+@@ -0,0 +1,21 @@
++﻿using Microsoft.Xna.Framework;
++using System.Collections.Generic;
++
++namespace Mygame.Core.Levels
++{
++    public sealed class Level
++    {
++        public int Index { get; }
++        public Vector2 PlayerSpawn { get; }
++        public List<Mygame.Sprite> Sprites { get; }
++        public Rectangle FinishZone { get; }
++
++        public Level(int index, Vector2 playerSpawn, Rectangle finishZone, List<Mygame.Sprite> sprites)
++        {
++            Index = index;
++            PlayerSpawn = playerSpawn;
++            FinishZone = finishZone;
++            Sprites = sprites;
++        }
++    }
++}
+
+diff --git a/Mygame/Core/Levels/ILevelFactory.cs b/Mygame/Core/Levels/ILevelFactory.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/Levels/ILevelFactory.cs
+@@ -0,0 +1,9 @@
++﻿using Microsoft.Xna.Framework.Content;
++
++namespace Mygame.Core.Levels
++{
++    public interface ILevelFactory
++    {
++        Level Create(int levelIndex, ContentManager content);
++    }
++}
+
+diff --git a/Mygame/Core/Levels/LevelFactory.cs b/Mygame/Core/Levels/LevelFactory.cs
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/Mygame/Core/Levels/LevelFactory.cs
+@@ -0,0 +1,59 @@
++﻿using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Content;
++using Microsoft.Xna.Framework.Graphics;
++using System.Collections.Generic;
++
++namespace Mygame.Core.Levels
++{
++    /// <summary>
++    /// Hardcoded levels for now (OK for school). Later you can load from JSON/TMX.
++    /// </summary>
++    public sealed class LevelFactory : ILevelFactory
++    {
++        public Level Create(int levelIndex, ContentManager content)
++        {
++            // Shared textures
++            Texture2D blockTex = content.Load<Texture2D>("GonAngry");
++            Texture2D playerTex = content.Load<Texture2D>("Walk2");
++
++            var sprites = new List<Mygame.Sprite>();
++
++            // Build per level
++            if (levelIndex == 1)
++            {
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(100, 100)));
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(400, 200)));
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(700, 300)));
++
++                var finish = new Rectangle(1400, 900, 120, 120);
++                var spawn = new Vector2(200, 200);
++
++                // Player needs collision group -> pass sprites list after blocks exist
++                var player = new Mygame.Player(playerTex, spawn, sprites);
++                sprites.Add(player);
++
++                return new Level(levelIndex, spawn, finish, sprites);
++            }
++
++            // Level 2: different block layout
++            if (levelIndex == 2)
++            {
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(200, 600)));
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(500, 500)));
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(800, 400)));
++                sprites.Add(new Mygame.BlockSprite(blockTex, new Vector2(1100, 300)));
++
++                var finish = new Rectangle(1450, 150, 120, 120);
++                var spawn = new Vector2(100, 900);
++
++                var player = new Mygame.Player(playerTex, spawn, sprites);
++                sprites.Add(player);
++
++                return new Level(levelIndex, spawn, finish, sprites);
++            }
++
++            // Default fallback to level 1
++            return Create(1, content);
++        }
++    }
++}
