@@ -8,6 +8,11 @@ using MonoGame.Extended.Tiled;
 using MonoGame.Extended.Tiled.Renderers;
 using MonoGame.Extended;
 using Mygame.Core.Entities;
+using Autofac.Features.Metadata;
+using MonoGame.Extended.ECS.Systems;
+using Mygame.Core.Input;
+
+
 
 
 namespace Mygame.Core.States
@@ -44,15 +49,75 @@ namespace Mygame.Core.States
             _world = new GameWorld();
             _world.AddRange(_level.Entities);
 
+
+
             _whitePixel = new Texture2D(_game.GraphicsDevice, 1, 1);
             _whitePixel.SetData(new[] { Color.White });
 
             _map = content.Load<TiledMap>("Level1");
             _mapRenderer = new TiledMapRenderer(_game.GraphicsDevice, _map);
 
+            
+
+            // COLLISIONS uit Tiled
+            var colLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "Collisions");
+
+            if (colLayer != null)
+            {
+                foreach (var obj in colLayer.Objects)
+                {
+                    // Tiled object rectangles
+                    var rect = new Rectangle(
+                        (int)obj.Position.X,
+                        (int)obj.Position.Y,
+                        (int)obj.Size.Width,
+                        (int)obj.Size.Height
+                    );
+
+                    _world.Add(new CollisionBlockEntity(rect));
+                }
+            }
+
+
+            // 2) Player maken met collision-system
+            IInputService input = new KeyboardInputService();
+            var playerTex = content.Load<Texture2D>("Walk2");
+
+            var player = new PlayerEntity(playerTex, Vector2.Zero, input, _world.Collision);
+            _world.Add(player);
+
+            // 3) Spawn uit Tiled toepassen
+            //var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "PlayerSpawn");
+            //if (spawnLayer != null)
+            //{
+            //    var spawn = spawnLayer.Objects.FirstOrDefault(); // of o => o.Name == "PlayerSpawn"
+            //    if (spawn != null)
+            //        player.Position = spawn.Position;
+            //}
+
+
+
+            // spawn
+            var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "PlayerSpawn");
+
+            if (spawnLayer != null)
+            {
+                var spawn = spawnLayer.Objects.FirstOrDefault();
+
+                if (spawn != null)
+                {
+                    var player1 = _world.FindFirst<PlayerEntity>();
+                    if (player != null)
+                    {
+                        player.Position = spawn.Position;
+                    }
+                }
+            }
+
+
             // 🔽 camera
             _camera = new OrthographicCamera(_game.GraphicsDevice);
-            _camera.Zoom = 1.8f;
+            _camera.Zoom = 3f;
         }
 
         public void Update(GameTime gameTime)

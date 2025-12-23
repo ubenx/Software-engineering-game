@@ -27,8 +27,9 @@ namespace Mygame.Core.Levels
                 entities.Add(new BlockEntity(blockTex, new Vector2(400, 200), 128, 128));
                 entities.Add(new BlockEntity(blockTex, new Vector2(700, 300), 128, 128));
 
-                var player = new PlayerEntity(playerTex, new Vector2(300, 700), input);
-                entities.Add(player);
+                //Players worden gemaakt in PlayState anders breekt collision
+                //var player = new PlayerEntity(playerTex, new Vector2(300, 700), input);
+                //entities.Add(player);
 
                 var finish = new Rectangle(1400, 900, 120, 120);
                 return new Level(1, entities, finish);
@@ -41,8 +42,9 @@ namespace Mygame.Core.Levels
                 entities.Add(new BlockEntity(blockTex, new Vector2(800, 400), 128, 128));
                 entities.Add(new BlockEntity(blockTex, new Vector2(1100, 300), 128, 128));
 
-                var player = new PlayerEntity(playerTex, new Vector2(100, 900), input);
-                entities.Add(player);
+                //Players worden gemaakt in PlayState anders breekt collision
+                //var player = new PlayerEntity(playerTex, new Vector2(100, 900), input);
+                //entities.Add(player);
 
                 var finish = new Rectangle(1450, 150, 120, 120);
                 return new Level(2, entities, finish);

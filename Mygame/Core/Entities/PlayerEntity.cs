@@ -9,7 +9,7 @@ using Mygame.Core.Collision;
 
 namespace Mygame.Core.Entities
 {
-    public sealed class PlayerEntity: IEntity, ICollisionAware
+    public sealed class PlayerEntity: IEntity
     {
         public Vector2 Position { get; set; }
         public ICollider Collider { get; }
@@ -18,7 +18,7 @@ namespace Mygame.Core.Entities
 
 
         private readonly IInputService _input;
-        private CollisionSystem? _collision;
+        private readonly CollisionSystem _collision;
 
         // rendering/anim
         private readonly AnimatedSpriteRenderer _renderer;
@@ -34,26 +34,35 @@ namespace Mygame.Core.Entities
         // movement config (same feel as before)
         private const float Speed = 8f;
 
-        public PlayerEntity(Texture2D playerTexture, Vector2 position, IInputService input)
+
+        public PlayerEntity(Texture2D playerTexture, Vector2 position, IInputService input, CollisionSystem collision)
         {
             Position = position;
             _input = input;
+            _collision = collision;
 
             _renderer = new AnimatedSpriteRenderer(playerTexture, new Rectangle(0, 0, FrameW, FrameH));
 
-            // Zorgt voor grotere karakter
             int scaledW = (int)(FrameW * Scale);
             int scaledH = (int)(FrameH * Scale);
 
-            Collider = new RectCollider(() => Position, new Point(scaledW, scaledH));
+            // hitbox kleiner maken
+            int hitW = scaledW - 20;   // ← pas dit getal aan
+            int hitH = scaledH - 3;    // ← optioneel
 
+            // hitbox centreren binnen sprite
+            int offX = (scaledW - hitW) / 2;
+            int offY = (scaledH - hitH); // vaak wil je de hitbox naar beneden (voeten)
+
+            Collider = new RectCollider(() => Position, new Point(hitW, hitH), new Point(offX, offY));
         }
+
 
         //colision
-        public void SetCollision(CollisionSystem collision)
-        {
-            _collision = collision;
-        }
+        //public void SetCollision(CollisionSystem collision)
+        //{
+        //    _collision = collision;
+        //}
 
         public void Update(GameTime gameTime)
         {
@@ -79,17 +88,16 @@ namespace Mygame.Core.Entities
                 moving = true;
 
             // colision
-            if (_collision != null)
-            {
-                var pos = Position;
-                _collision.MoveWithCollision(this, ref pos, dx, dy);
-                Position = pos;
-            }
-            else
-            {
-                // Fallback (zou normaal niet gebeuren als entity via GameWorld.Add is toegevoegd)
-                Position = new Vector2(Position.X + dx, Position.Y + dy);
-            }
+            var pos = Position;
+            _collision.MoveWithCollision(this, ref pos, dx, dy);
+            Position = pos;
+
+
+            //else
+            //{
+            //    // Fallback (zou normaal niet gebeuren als entity via GameWorld.Add is toegevoegd)
+            //    Position = new Vector2(Position.X + dx, Position.Y + dy);
+            //}
 
             // Animation like your old code
             if (moving)
