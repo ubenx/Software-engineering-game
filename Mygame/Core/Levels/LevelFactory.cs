@@ -23,31 +23,38 @@ namespace Mygame.Core.Levels
 
             if (levelIndex == 1)
             {
-                
-                entities.Add(new BlockEntity(blockTex, new Vector2(400, 200), 128, 128));
-                entities.Add(new BlockEntity(blockTex, new Vector2(700, 300), 128, 128));
+                var finish = new Rectangle(1400, 900, 120, 120);
+                //entities.Add(new BlockEntity(blockTex, new Vector2(400, 200), 128, 128));
+                //entities.Add(new BlockEntity(blockTex, new Vector2(700, 300), 128, 128));
 
                 //Players worden gemaakt in PlayState anders breekt collision
                 //var player = new PlayerEntity(playerTex, new Vector2(300, 700), input);
                 //entities.Add(player);
 
-                var finish = new Rectangle(1400, 900, 120, 120);
-                return new Level(1, entities, finish);
+
+                return new Level(index: 1,
+                entities: entities,
+                finishZone: finish,
+                mapAsset: "Level1");
             }
 
             if (levelIndex == 2)
             {
-                entities.Add(new BlockEntity(blockTex, new Vector2(200, 600), 128, 128));
-                entities.Add(new BlockEntity(blockTex, new Vector2(500, 500), 128, 128));
-                entities.Add(new BlockEntity(blockTex, new Vector2(800, 400), 128, 128));
-                entities.Add(new BlockEntity(blockTex, new Vector2(1100, 300), 128, 128));
+                var finish = new Rectangle(1450, 150, 120, 120);
+                //entities.Add(new BlockEntity(blockTex, new Vector2(200, 600), 128, 128));
+                //entities.Add(new BlockEntity(blockTex, new Vector2(500, 500), 128, 128));
+                //entities.Add(new BlockEntity(blockTex, new Vector2(800, 400), 128, 128));
+                //entities.Add(new BlockEntity(blockTex, new Vector2(1100, 300), 128, 128));
 
                 //Players worden gemaakt in PlayState anders breekt collision
                 //var player = new PlayerEntity(playerTex, new Vector2(100, 900), input);
                 //entities.Add(player);
 
-                var finish = new Rectangle(1450, 150, 120, 120);
-                return new Level(2, entities, finish);
+
+                return new Level(index: 2,
+                entities: entities,
+                finishZone: finish,
+                mapAsset: "Level2");
             }
 
             return Create(1, content);

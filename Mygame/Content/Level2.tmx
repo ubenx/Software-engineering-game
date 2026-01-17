@@ -28,7 +28,7 @@
  <objectgroup color="#00ff00" id="3" name="PlayerSpawn">
   <object id="40" x="31.6667" y="63" width="15.6667" height="33"/>
  </objectgroup>
- <objectgroup color="#ff0000" id="2" name="Collision">
+ <objectgroup color="#ff0000" id="2" name="Collisions">
   <object id="6" x="-0.25" y="112.5" width="207.75" height="15.75"/>
   <object id="7" x="240.5" y="128.25" width="63" height="15.5"/>
   <object id="8" x="336" y="144.5" width="239.25" height="16.25"/>

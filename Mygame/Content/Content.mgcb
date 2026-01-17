@@ -56,6 +56,11 @@
 /processorParam:TextureFormat=Color
 /build:Level1.png;Level1Pic.png
 
+#begin Level2.tmx
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
+/build:Level2.tmx
+
 #begin Walk2.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -79,6 +84,4 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:world_tileset.png
-
-
 

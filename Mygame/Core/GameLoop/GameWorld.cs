@@ -13,6 +13,7 @@ namespace Mygame.Core.GameLoop
 
         public CollisionSystem Collision { get; } = new();
 
+
         public void Add(IEntity entity)
         {
             _entities.Add(entity);

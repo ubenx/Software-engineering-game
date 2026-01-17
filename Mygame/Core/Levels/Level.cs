@@ -10,11 +10,21 @@ namespace Mygame.Core.Levels
         public List<IEntity> Entities { get; }
         public Rectangle FinishZone { get; }
 
-        public Level(int index, List<IEntity> entities, Rectangle finishZone)
+        public string MapAsset { get; }
+        public string CollisionLayerName { get; }
+        public string PlayerSpawnLayerName { get; }
+
+        public Level(int index, List<IEntity> entities, Rectangle finishZone, string mapAsset,
+            string collisionLayerName = "Collisions",
+            string playerSpawnLayerName = "PlayerSpawn")
         {
             Index = index;
             Entities = entities;
             FinishZone = finishZone;
+
+            MapAsset = mapAsset;
+            CollisionLayerName = collisionLayerName;
+            PlayerSpawnLayerName = playerSpawnLayerName;
         }
     }
 }

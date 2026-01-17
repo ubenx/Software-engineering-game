@@ -54,13 +54,15 @@ namespace Mygame.Core.States
             _whitePixel = new Texture2D(_game.GraphicsDevice, 1, 1);
             _whitePixel.SetData(new[] { Color.White });
 
-            _map = content.Load<TiledMap>("Level1");
+            _map = content.Load<TiledMap>(_level.MapAsset);
             _mapRenderer = new TiledMapRenderer(_game.GraphicsDevice, _map);
 
-            
+
 
             // COLLISIONS uit Tiled
-            var colLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "Collisions");
+            //var colLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "Collisions");
+            var colLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.CollisionLayerName);
+
 
             if (colLayer != null)
             {
@@ -98,7 +100,8 @@ namespace Mygame.Core.States
 
 
             // spawn
-            var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "PlayerSpawn");
+            //var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "PlayerSpawn");
+            var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.PlayerSpawnLayerName);
 
             if (spawnLayer != null)
             {
@@ -118,11 +121,24 @@ namespace Mygame.Core.States
             // 🔽 camera
             _camera = new OrthographicCamera(_game.GraphicsDevice);
             _camera.Zoom = 3f;
+
+            //testing
+            //System.Diagnostics.Debug.WriteLine("ObjectLayers:");
+            //foreach (var l in _map.ObjectLayers)
+            //    System.Diagnostics.Debug.WriteLine($" - {l.Name}");
+
         }
 
         public void Update(GameTime gameTime)
         {
             if (_level == null || _world == null) return;
+            var player = _world.FindFirst<PlayerEntity>();
+
+            if (player != null)
+            {
+                _world.Collision.ApplyPhysics(player, gameTime);
+            }
+
 
             _world.Update(gameTime);
 
@@ -131,13 +147,14 @@ namespace Mygame.Core.States
             _mapRenderer.Update(gameTime);
 
             // camera laten volgen
-            var player = _world.FindFirst<PlayerEntity>();
+            
             if (player != null)
                 _camera.LookAt(player.Position);
 
             if (player != null)
             {
                 // Win condition
+                
                 if (player.Collider != null && player.Collider.Bounds.Intersects(_level.FinishZone))
                 {
                     int next = _level.Index + 1;

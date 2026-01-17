@@ -14,6 +14,10 @@ namespace Mygame.Core.Entities
         public Vector2 Position { get; set; }
         public ICollider Collider { get; }
 
+        public Vector2 Velocity { get; set; }   // nieuw
+        public bool IsGrounded { get; set; }    // nieuw (optioneel)
+
+
         private const float Scale = 0.4f;
 
 
@@ -47,12 +51,17 @@ namespace Mygame.Core.Entities
             int scaledH = (int)(FrameH * Scale);
 
             // hitbox kleiner maken
-            int hitW = scaledW - 20;   // ← pas dit getal aan
-            int hitH = scaledH - 3;    // ← optioneel
+            //int hitW = scaledW - 20;   // ← pas dit getal aan
+            //int hitH = scaledH - 3;    // ← optioneel
+
+            int hitW = (int)(scaledW * 0.35f);
+            int hitH = (int)(scaledH * 0.85f);
 
             // hitbox centreren binnen sprite
-            int offX = (scaledW - hitW) / 2;
-            int offY = (scaledH - hitH); // vaak wil je de hitbox naar beneden (voeten)
+            int offX = (int)(scaledW * 0.25f);   // Was 0.32f → nu meer naar links
+            int offY = 0;
+
+
 
             Collider = new RectCollider(() => Position, new Point(hitW, hitH), new Point(offX, offY));
         }
@@ -133,6 +142,8 @@ namespace Mygame.Core.Entities
             (int)(FrameH * Scale)
                 );
             _renderer.Draw(spriteBatch, dst, Color.White, _fx);
+
+            
         }
     }
 }
