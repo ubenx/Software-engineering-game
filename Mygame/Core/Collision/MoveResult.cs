@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace Mygame.Core.Collision
 {
-    //klasse die helpt bij zwaartekracht
+
+    //WELKE KANTEN van je entity collision hebben geraakt tijdens beweging.
     public sealed class MoveResult
     {
         public bool HitLeft { get; set; }

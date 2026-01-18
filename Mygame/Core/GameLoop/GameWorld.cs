@@ -23,9 +23,7 @@ namespace Mygame.Core.GameLoop
             if (entity.Collider != null)
                 Collision.Register(entity);
 
-            //// Inject CollisionSystem in entities that need it (Player, enemies, projectiles...)
-            //if (entity is Mygame.Core.Collision.ICollisionAware aware)
-            //    aware.SetCollision(Collision);
+            
         }
 
         public void Remove(IEntity entity)
@@ -51,14 +49,13 @@ namespace Mygame.Core.GameLoop
 
         public void Update(GameTime gameTime)
         {
-            //foreach (var e in _entities.ToList())
-            //    e.Update(gameTime);
+            
 
-            // 1) intent/AI/anim
+            //  intent/AI/anim
             foreach (var e in _entities)
                 e.Update(gameTime);
 
-            // 2) physics + collision (gravity)
+            //  physics + collision (gravity)
             foreach (var e in _entities)
             {
                 if (e is IPhysicsBody body)

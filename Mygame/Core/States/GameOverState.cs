@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 namespace Mygame.Core.States
 {
@@ -16,11 +17,13 @@ namespace Mygame.Core.States
         {
             _game = game;
         }
+        
 
         public void LoadContent(ContentManager content)
         {
             _tex = content.Load<Texture2D>("gameOverScreen2");
-            _dst = new Rectangle(0, 0, 1580, 1020);
+            _dst = new Rectangle(0, 0, 1780, 1220);
+            MediaPlayer.Stop();
         }
 
         public void Update(GameTime gameTime)

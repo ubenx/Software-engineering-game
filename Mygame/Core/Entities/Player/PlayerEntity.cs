@@ -4,7 +4,6 @@ using Mygame.Core.Collision;
 using Mygame.Core.GameLoop;
 using Mygame.Core.Input;
 using Mygame.Core.Rendering;
-using Mygame.Core.Collision;
 using Mygame.Core.Physics;
 using System;
 
@@ -17,7 +16,19 @@ namespace Mygame.Core.Entities.Player
         public ICollider Collider { get; }
 
         public Vector2 Velocity { get; set; }  
-        public bool IsGrounded { get; set; }    
+        public bool IsGrounded { get; set; }
+
+        public int Lives { get; private set; } = 3;
+
+
+        // Voor leven systeem
+        public bool IsInvulnerable => _iFrameTimer > 0f;
+        //visueale markering
+        private double _blinkTime;
+
+        private float _iFrameTimer = 0f;
+        private const float IFrameDuration = 1.0f; // 1 sec
+
 
         //buffers voor het springen  anders werkt het te sluggish
         private float _jumpBufferTimer = 0f;
@@ -41,24 +52,12 @@ namespace Mygame.Core.Entities.Player
         private int _frameX;
         private const int FrameW = 128;
         private const int FrameH = 128;
-        private const int MaxFrameX = 824; // matches your old spritesheet logic
+        private const int MaxFrameX = 824; 
 
-        // movement config (same feel as before)
-        private const float Speed = 7f;
+        // movement config 
+        
         private const float JumpVelocity = -400f; // px/sec omhoog (negatief)
-        private static void SetHitFlags(float dx, float dy, int dir, MoveResult result)
-{
-    if (dx != 0)
-    {
-        if (dir < 0) result.HitLeft = true;
-        else result.HitRight = true;
-    }
-    else if (dy != 0)
-    {
-        if (dir < 0) result.HitTop = true;
-        else result.HitBottom = true;
-    }
-}
+        
 
 
         
@@ -74,25 +73,13 @@ namespace Mygame.Core.Entities.Player
             int scaledW = (int)(FrameW * Scale);
             int scaledH = (int)(FrameH * Scale);
 
-            // hitbox kleiner maken
-            //int hitW = scaledW - 20;   // ← pas dit getal aan
-            //int hitH = scaledH - 3;    // ← optioneel
+     
 
 
-
-            //Scale die dunner is maar bottom clipped een beetje
-            //int hitW = (int)(scaledW * 0.35f);
-            //int hitH = (int)(scaledH * 0.85f);
-
-            //// hitbox centreren binnen sprite
-            //int offX = (int)(scaledW * 0.25f);   // Was 0.32f → nu meer naar links
-            //int offY = 0;
-
-
-            int hitW = (int)(scaledW * 0.40f);   // 👈 smaller
+            int hitW = (int)(scaledW * 0.40f);   //  smaller maken
             int hitH = (int)(scaledH * 0.70f);
 
-            int offX = (scaledW - hitW) / 2;     // 👈 centreer opnieuw
+            int offX = (scaledW - hitW) / 2;     // centreren 
             int offY = (scaledH - hitH);
 
 
@@ -100,17 +87,17 @@ namespace Mygame.Core.Entities.Player
             Collider = new RectCollider(() => Position, new Point(hitW, hitH), new Point(offX, offY));
         }
 
-
-        //colision
-        //public void SetCollision(CollisionSystem collision)
-        //{
-        //    _collision = collision;
-        //}
+        
 
         public void Update(GameTime gameTime)
         {
             var inp = _input.Read();
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            //ook voor levens
+            if (_iFrameTimer > 0f)
+                _iFrameTimer = MathF.Max(0f, _iFrameTimer - dt);
+            _blinkTime += gameTime.ElapsedGameTime.TotalSeconds;
+
 
             // buffer: als je drukt, onthouden we het even
             if (inp.JumpPressed)
@@ -133,8 +120,8 @@ namespace Mygame.Core.Entities.Player
 
             
             // jump als:
-            // - je onlangs jump hebt gedrukt (buffer)
-            // - en je bent grounded OF net pas van grond gevallen (coyote)
+            // - je onlangs jump hebt gedrukt 
+            // - en je bent grounded OF net pas van grond gevallen 
             if (_jumpBufferTimer > 0f && _coyoteTimer > 0f)
             {
                 Velocity = new Vector2(Velocity.X, JumpVelocity);
@@ -150,34 +137,6 @@ namespace Mygame.Core.Entities.Player
             if (inp.AxisX > 0) _fx = SpriteEffects.None;
             else if (inp.AxisX < 0) _fx = SpriteEffects.FlipHorizontally;
 
-
-            //if (_fx > 0)
-            //{
-            //    moving = true;
-            //    _fx = SpriteEffects.None;
-            //}
-            //else if (_fx < 0)
-            //{
-            //    moving = true;
-            //    _fx = SpriteEffects.FlipHorizontally;
-            //}
-
-            //if (dy != 0)
-            //    moving = true;
-
-            //// colision (old)
-            //var pos = Position;
-            //_collision.MoveWithCollision(this, ref pos, dx, dy);
-            //Position = pos;
-
-
-            //else
-            //{
-            //    // Fallback (zou normaal niet gebeuren als entity via GameWorld.Add is toegevoegd)
-            //    Position = new Vector2(Position.X + dx, Position.Y + dy);
-            //}
-
-            // Animation like your old code
 
             UpdateAnimation(gameTime, moving);
         }
@@ -207,9 +166,26 @@ namespace Mygame.Core.Entities.Player
             }
         }
 
+        public bool TryTakeHit()
+        {
+            if (IsInvulnerable) return false;
+
+            Lives--;
+            _iFrameTimer = IFrameDuration;
+            return true;
+        }
+
+
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            if (IsInvulnerable)
+            {
+                // 10x per seconde aan/uit
+                bool visible = ((int)(_blinkTime * 10) % 2) == 0;
+                if (!visible) return;
+            }
+
             // voor scale en groter manneke
             var dst = new Rectangle(
             (int)Position.X,

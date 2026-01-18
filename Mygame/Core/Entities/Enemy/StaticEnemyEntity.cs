@@ -2,11 +2,6 @@
 using Microsoft.Xna.Framework;
 using Mygame.Core.Collision;
 using Mygame.Core.GameLoop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Mygame.Core.Combat;
 
 namespace Mygame.Core.Entities.Enemy

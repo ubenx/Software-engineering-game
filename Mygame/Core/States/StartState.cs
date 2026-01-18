@@ -12,6 +12,7 @@ namespace Mygame.Core.States
 
         private Texture2D? _bg;
         private Rectangle _dst;
+        
 
         //START KNOP
         private Rectangle _startButton;
@@ -28,14 +29,14 @@ namespace Mygame.Core.States
         {
             _bg = content.Load<Texture2D>("hxh");
             _buttonTex = content.Load<Texture2D>("play3");
-            _dst = new Rectangle(0, 0, 1580, 1020);
+            _dst = new Rectangle(0, 0, 1780, 1220);
 
 
             _startButton = new Rectangle(
-       1580 / 2 - 150,   // x (center)
-       1020 / 2 + 200,   // y
-       300,              // width
-       100               // height
+                   1780 / 2 - 150,   // x (center)
+                   1220 / 2 + 200,   // y
+                   300,              // width
+                   100               // height
    );
         }
 
@@ -46,7 +47,7 @@ namespace Mygame.Core.States
 
             _hover = _startButton.Contains(mousePos);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Enter) || (_hover && mouse.LeftButton == ButtonState.Pressed))
+            if (Keyboard.GetState().IsKeyDown(Keys.P) || (_hover && mouse.LeftButton == ButtonState.Pressed))
                 _game.ChangeState(new PlayState(_game, 1));
         }
 

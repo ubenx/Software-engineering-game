@@ -1,11 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Mygame.Core.Entities.Player;
 using Mygame.Core.GameLoop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Mygame.Core.Combat
 {
@@ -20,6 +16,7 @@ namespace Mygame.Core.Combat
 
             var p = player.Collider.Bounds;
 
+            // Loop door ALLE entities (zoek IKillable)
             foreach (var enemy in world.FindAll<IEntity>())
             {
                 if (enemy.Collider == null) continue;

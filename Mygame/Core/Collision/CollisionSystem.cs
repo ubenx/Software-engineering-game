@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Mygame.Core.GameLoop;
-using Mygame.Core.Entities;
 using System;
 using Mygame.Core.Physics;
 
@@ -19,29 +18,6 @@ namespace Mygame.Core.Collision
 
 
         //zwaartekracht
-        //public void ApplyPhysics(PlayerEntity e, GameTime gameTime)
-        //{
-        //    float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        //    // gravity
-        //    e.Velocity = new Vector2(
-        //        e.Velocity.X,
-        //        MathF.Min(e.Velocity.Y + Gravity * dt, MaxFallSpeed)
-        //    );
-
-        //    // move with collision using velocity * dt
-        //    float dx = e.Velocity.X * dt;
-        //    float dy = e.Velocity.Y * dt;
-
-        //    var pos = e.Position;
-        //    var result = MoveWithCollision(e, ref pos, dx, dy); // zie noot hieronder
-        //    e.Position = pos;
-
-        //    // als je op vloer botst, stop val-snelheid
-        //    if (result.HitBottom) e.Velocity = new Vector2(e.Velocity.X, 0);
-        //    e.IsGrounded = result.HitBottom;
-        //}
-
         public MoveResult ApplyPhysics(IEntity entity, IPhysicsBody body, GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -89,28 +65,7 @@ namespace Mygame.Core.Collision
             return false;
         }
 
-        //public void MoveWithCollision(IEntity entity, ref Vector2 position, float dx, float dy)
-        //{
-        //    // X
-        //    if (dx != 0)
-        //    {
-        //        var nextPos = new Vector2(position.X + dx, position.Y);
-        //        var nextRect = RectAt(entity, nextPos);
-
-        //        if (!IntersectsAny(nextRect, ignore: entity))
-        //            position = nextPos;
-        //    }
-
-        //    // Y
-        //    if (dy != 0)
-        //    {
-        //        var nextPos = new Vector2(position.X, position.Y + dy);
-        //        var nextRect = RectAt(entity, nextPos);
-
-        //        if (!IntersectsAny(nextRect, ignore: entity))
-        //            position = nextPos;
-        //    }
-        //}
+   
         public MoveResult MoveWithCollision(IEntity entity, ref Vector2 position, float dx, float dy)
         {
             var result = new MoveResult();
@@ -120,37 +75,7 @@ namespace Mygame.Core.Collision
 
             return result;
 
-            // OUDE CODE X
-            //if (dx != 0)
-            //{
-            //    var nextPos = new Vector2(position.X + dx, position.Y);
-            //    var nextRect = RectAt(entity, nextPos);
-
-            //    if (!IntersectsAny(nextRect, ignore: entity))
-            //        position = nextPos;
-            //    else
-            //    {
-            //        if (dx < 0) result.HitLeft = true;
-            //        if (dx > 0) result.HitRight = true;
-            //    }
-            //}
-
-            //// Y
-            //if (dy != 0)
-            //{
-            //    var nextPos = new Vector2(position.X, position.Y + dy);
-            //    var nextRect = RectAt(entity, nextPos);
-
-            //    if (!IntersectsAny(nextRect, ignore: entity))
-            //        position = nextPos;
-            //    else
-            //    {
-            //        if (dy < 0) result.HitTop = true;
-            //        if (dy > 0) result.HitBottom = true;
-            //    }
-            //}
-
-            //return result;
+            
         }
 
 

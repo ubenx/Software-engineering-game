@@ -5,6 +5,9 @@ namespace Mygame.Core.Rendering
 {
     public sealed class AnimatedSpriteRenderer
     {
+        //beheert animatie- en render-data voor één sprite
+        //één visueel object dat als afbeelding wordt getekend in de gamewereld.
+
         private readonly Texture2D _texture;
 
         public Rectangle SourceRectangle { get; private set; }

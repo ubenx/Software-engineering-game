@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Mygame.Core.GameLoop;
-using Mygame.Core.Entities.Enemy;
+
 
 namespace Mygame.Core.Levels
 {

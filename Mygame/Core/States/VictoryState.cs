@@ -2,11 +2,8 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Media;
+
 
 namespace Mygame.Core.States
 {
@@ -25,7 +22,8 @@ namespace Mygame.Core.States
         public void LoadContent(ContentManager content)
         {
             _tex = content.Load<Texture2D>("Victory");
-            _dst = new Rectangle(0, 0, 1580, 1020);
+            _dst = new Rectangle(0, 0, 1780, 1220);
+            MediaPlayer.Stop();
         }
 
         public void Update(GameTime gameTime)
@@ -35,8 +33,6 @@ namespace Mygame.Core.States
             if (k.IsKeyDown(Keys.Enter))
                 _game.ChangeState(new StartState(_game));
 
-            //if (k.IsKeyDown(Keys.M))
-            //    _game.ChangeState(new StartState(_game));
         }
 
         public void Draw(SpriteBatch spriteBatch)
