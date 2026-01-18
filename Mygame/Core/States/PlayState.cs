@@ -11,6 +11,8 @@ using Mygame.Core.Entities;
 using Autofac.Features.Metadata;
 using MonoGame.Extended.ECS.Systems;
 using Mygame.Core.Input;
+using Mygame.Core.Entities.Player;
+using Mygame.Core.Entities.Enemy;
 
 
 
@@ -20,7 +22,12 @@ namespace Mygame.Core.States
     public sealed class PlayState: IGameState
     {
         private readonly Mygame.Game1 _game;
+        private Texture2D? _background;
         private readonly int _levelIndex;
+        private readonly Mygame.Core.Combat.DamageSystem _damage = new();
+        private readonly Mygame.Core.Combat.StompSystem _stomp = new();
+
+
 
         private readonly ILevelFactory _factory = new LevelFactory();
 
@@ -46,6 +53,9 @@ namespace Mygame.Core.States
         {
             _level = _factory.Create(_levelIndex, content);
 
+            _background = content.Load<Texture2D>(_level.BackgroundAsset);
+
+
             _world = new GameWorld();
             _world.AddRange(_level.Entities);
 
@@ -57,6 +67,24 @@ namespace Mygame.Core.States
             _map = content.Load<TiledMap>(_level.MapAsset);
             _mapRenderer = new TiledMapRenderer(_game.GraphicsDevice, _map);
 
+            // FINISH uit Tiled
+            var finishLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.FinishLayerName);
+            var finishObj = finishLayer?.Objects.FirstOrDefault();
+
+            if (finishObj != null)
+            {
+                _level.FinishZone = new Rectangle(
+                    (int)finishObj.Position.X,
+                    (int)finishObj.Position.Y,
+                    (int)finishObj.Size.Width,
+                    (int)finishObj.Size.Height
+                );
+            }
+            else
+            {
+                // fallback voor debug
+                _level.FinishZone = Rectangle.Empty;
+            }
 
 
             // COLLISIONS uit Tiled
@@ -99,23 +127,89 @@ namespace Mygame.Core.States
 
 
 
-            // spawn
-            //var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == "PlayerSpawn");
+            // Playerspawn
+            
             var spawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.PlayerSpawnLayerName);
+            var spawn = spawnLayer?.Objects.FirstOrDefault();
+            var player1 = _world.FindFirst<PlayerEntity>();
 
-            if (spawnLayer != null)
+            if (spawn != null && player1?.Collider is Mygame.Core.Collision.RectCollider rc)
             {
-                var spawn = spawnLayer.Objects.FirstOrDefault();
+                // Plaats speler zodat zijn COLLIDER binnen het spawn-rect valt
 
-                if (spawn != null)
+                float spawnLeft = spawn.Position.X;
+                float spawnTop = spawn.Position.Y;
+                float spawnW = spawn.Size.Width > 0 ? spawn.Size.Width : 0;
+                float spawnH = spawn.Size.Height > 0 ? spawn.Size.Height : 0;
+
+                // center X in spawn rect
+                float colliderCenterX = rc.Offset.X + rc.Size.X / 2f;
+                float targetCenterX = spawnLeft + spawnW / 2f;
+
+                float x = targetCenterX - colliderCenterX;
+
+                // bottom align: collider bottom op spawn bottom (met 2px marge omhoog)
+                float colliderBottom = rc.Offset.Y + rc.Size.Y;
+                float targetBottom = spawnTop + spawnH;
+
+                float y = (targetBottom - colliderBottom) - 2f; // -2px zodat je niet in vloer start
+
+                player1.Position = new Vector2(x, y);
+            }
+
+
+
+            // 4) Static Enemy spawn uit Tiled
+            var enemySpawnLayer = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.StaticEnemyLayerName);
+
+            if (enemySpawnLayer != null)
+            {
+                Texture2D staticEnemyTex = content.Load<Texture2D>("staticEnemy1");
+
+                foreach (var obj in enemySpawnLayer.Objects)
                 {
-                    var player1 = _world.FindFirst<PlayerEntity>();
-                    if (player != null)
-                    {
-                        player.Position = spawn.Position;
-                    }
+                    int w = (int)(obj.Size.Width > 0 ? obj.Size.Width : 64);
+                    int h = (int)(obj.Size.Height > 0 ? obj.Size.Height : 64);
+
+                    var rect = new Rectangle(
+                        (int)obj.Position.X,
+                        (int)obj.Position.Y,
+                        w,
+                        h
+                    );
+
+                    _world.Add(new StaticEnemyEntity(staticEnemyTex, rect));
                 }
             }
+
+            var enemySpawnLayer2 = _map.ObjectLayers.FirstOrDefault(l => l.Name == _level.PatrolEnemyLayerName);
+
+            if (enemySpawnLayer2 != null)
+            {
+                Texture2D patrolEnemyTex =
+                    _level.Index == 3
+                        ? content.Load<Texture2D>("movingEnemy2") // nieuw texture voor level 3
+                        : content.Load<Texture2D>("movingEnemy1");
+
+
+                foreach (var obj in enemySpawnLayer2.Objects)
+                {
+                    int w = (int)(obj.Size.Width > 0 ? obj.Size.Width : 64);
+                    int h = (int)(obj.Size.Height > 0 ? obj.Size.Height : 64);
+
+                    var rect = new Rectangle(
+                        (int)obj.Position.X,
+                        (int)obj.Position.Y,
+                        w,
+                        h
+                    );
+
+                    float speed = _level.Index == 3 ? 240f : 140f;
+                    _world.Add(new PatrolEnemyEntity(patrolEnemyTex, rect, speed));
+
+                }
+            }
+
 
 
             // 🔽 camera
@@ -134,13 +228,47 @@ namespace Mygame.Core.States
             if (_level == null || _world == null) return;
             var player = _world.FindFirst<PlayerEntity>();
 
-            if (player != null)
-            {
-                _world.Collision.ApplyPhysics(player, gameTime);
-            }
 
 
             _world.Update(gameTime);
+
+            //Stomp mechanisme
+            bool stomped = false;
+
+            if (player != null)
+            {
+                stomped = _stomp.TryStomp(_world, player);
+
+                if (!stomped && _damage.CheckPlayerHit(_world, player))
+                {
+                    _game.ChangeState(new GameOverState(_game));
+                    return;
+                }
+            }
+
+            
+
+
+
+            var enemy = _world.FindFirst<Mygame.Core.Entities.Enemy.StaticEnemyEntity>();
+
+            if (player?.Collider != null && enemy?.Collider != null)
+            {
+                var p = player.Collider.Bounds;
+                var e = enemy.Collider.Bounds;
+
+                System.Diagnostics.Debug.WriteLine($"PlayerBounds={p} EnemyBounds={e} Intersects={p.Intersects(e)}");
+                System.Diagnostics.Debug.WriteLine($"gapX: {e.Left - p.Right}, gapY: {e.Top - p.Bottom}");
+            }
+
+
+
+            //if (player != null && _damage.CheckPlayerHit(_world, player))
+            //{
+            //    _game.ChangeState(new GameOverState(_game));
+            //    return;
+            //}
+
 
 
             // update map renderer (anim tiles, etc.)
@@ -154,12 +282,14 @@ namespace Mygame.Core.States
             if (player != null)
             {
                 // Win condition
-                
-                if (player.Collider != null && player.Collider.Bounds.Intersects(_level.FinishZone))
+
+                if (_level.FinishZone != Rectangle.Empty &&
+                    player.Collider != null &&
+                    player.Collider.Bounds.Intersects(_level.FinishZone))
                 {
                     int next = _level.Index + 1;
-                    if (next > 2)
-                        _game.ChangeState(new StartState(_game));
+                    if (next > 3)
+                        _game.ChangeState(new VictoryState(_game));
                     else
                         _game.ChangeState(new PlayState(_game, next));
                     return;
@@ -178,20 +308,47 @@ namespace Mygame.Core.States
         {
             if (_level == null || _world == null) return;
 
-            // 1️⃣ Tiled map (achtergrond)
+            // 0) Background (screen-space, not affected by camera)
+            if (_background != null)
+            {
+                spriteBatch.Begin();
+                spriteBatch.Draw(
+                    _background,
+                    new Rectangle(
+                        0, 0,
+                        _game.GraphicsDevice.Viewport.Width,
+                        _game.GraphicsDevice.Viewport.Height),
+                    Color.White
+                );
+                spriteBatch.End();
+            }
+
+            // 1) Tiled map (world-space)
             _mapRenderer.Draw(_camera.GetViewMatrix());
 
-            // 2️⃣ Entities (player, blocks, enemies)
+            // 2) Entities + debug (world-space)
             spriteBatch.Begin(transformMatrix: _camera.GetViewMatrix());
+
             _world.Draw(spriteBatch);
-            
 
             // Draw finish zone visibly
             if (_whitePixel != null)
                 spriteBatch.Draw(_whitePixel, _level.FinishZone, Color.White * 0.35f);
 
+            // Collision box viewer
+            if (_whitePixel != null)
+            {
+                foreach (var e in _world.FindAll<IEntity>())
+                {
+                    if (e.Collider == null) continue;
+                    var r = e.Collider.Bounds;
+                    spriteBatch.Draw(_whitePixel, r, Color.Red * 0.35f);
+                }
+            }
+
             spriteBatch.End();
         }
+
 
         public void Unload()
         {

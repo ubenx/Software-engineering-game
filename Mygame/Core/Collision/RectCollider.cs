@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 
 namespace Mygame.Core.Collision
@@ -6,14 +7,18 @@ namespace Mygame.Core.Collision
     public sealed class RectCollider: ICollider
     {
         private readonly System.Func<Vector2> _getPosition;
-        private readonly Point _size;
-        private readonly Point _offset;
+
+
+        //private readonly Point _size;
+        public Point Size { get; }
+        public Point Offset { get; }
+        //private readonly Point _offset;
 
         public RectCollider(System.Func<Vector2> getPosition, Point size, Point? offset = null)
         {
             _getPosition = getPosition;
-            _size = size;
-            _offset = offset ?? Point.Zero;
+            Size = size;
+            Offset = offset ?? Point.Zero;
         }
 
         public Rectangle Bounds
@@ -22,10 +27,10 @@ namespace Mygame.Core.Collision
             {
                 var p = _getPosition();
                 return new Rectangle(
-                    (int)p.X + _offset.X,
-                    (int)p.Y + _offset.Y,
-                    _size.X,
-                    _size.Y
+                    (int)MathF.Round(p.X) + Offset.X,
+                    (int)MathF.Round(p.Y) + Offset.Y,
+                    Size.X,
+                    Size.Y
                 );
             }
         }

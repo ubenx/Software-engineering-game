@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using Mygame.Core.GameLoop;
 using Mygame.Core.Entities;
 using System;
+using Mygame.Core.Physics;
 
 namespace Mygame.Core.Collision
 {
     public sealed class CollisionSystem
     {
         //hier wordt ook zwaartekracht in gemaakt
-        
+
         public float Gravity = 2000f;      // pixels/sec^2
         public float MaxFallSpeed = 2500f; // cap
 
@@ -18,27 +19,50 @@ namespace Mygame.Core.Collision
 
 
         //zwaartekracht
-        public void ApplyPhysics(PlayerEntity e, GameTime gameTime)
+        //public void ApplyPhysics(PlayerEntity e, GameTime gameTime)
+        //{
+        //    float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        //    // gravity
+        //    e.Velocity = new Vector2(
+        //        e.Velocity.X,
+        //        MathF.Min(e.Velocity.Y + Gravity * dt, MaxFallSpeed)
+        //    );
+
+        //    // move with collision using velocity * dt
+        //    float dx = e.Velocity.X * dt;
+        //    float dy = e.Velocity.Y * dt;
+
+        //    var pos = e.Position;
+        //    var result = MoveWithCollision(e, ref pos, dx, dy); // zie noot hieronder
+        //    e.Position = pos;
+
+        //    // als je op vloer botst, stop val-snelheid
+        //    if (result.HitBottom) e.Velocity = new Vector2(e.Velocity.X, 0);
+        //    e.IsGrounded = result.HitBottom;
+        //}
+
+        public MoveResult ApplyPhysics(IEntity entity, IPhysicsBody body, GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // gravity
-            e.Velocity = new Vector2(
-                e.Velocity.X,
-                MathF.Min(e.Velocity.Y + Gravity * dt, MaxFallSpeed)
+            body.Velocity = new Vector2(
+                body.Velocity.X,
+                MathF.Min(body.Velocity.Y + Gravity * dt, MaxFallSpeed)
             );
 
-            // move with collision using velocity * dt
-            float dx = e.Velocity.X * dt;
-            float dy = e.Velocity.Y * dt;
+            float dx = body.Velocity.X * dt;
+            float dy = body.Velocity.Y * dt;
 
-            var pos = e.Position;
-            var result = MoveWithCollision(e, ref pos, dx, dy); // zie noot hieronder
-            e.Position = pos;
+            var pos = entity.Position;
+            var result = MoveWithCollision(entity, ref pos, dx, dy);
+            entity.Position = pos;
 
-            // als je op vloer botst, stop val-snelheid
-            if (result.HitBottom) e.Velocity = new Vector2(e.Velocity.X, 0);
-            e.IsGrounded = result.HitBottom;
+            if (result.HitBottom)
+                body.Velocity = new Vector2(body.Velocity.X, 0);
+
+            body.IsGrounded = result.HitBottom;
+            return result;
         }
 
 
@@ -53,6 +77,10 @@ namespace Mygame.Core.Collision
             foreach (var e in _collidables)
             {
                 if (ignore != null && ReferenceEquals(e, ignore))
+                    continue;
+
+                // alleen solids blokkeren movement
+                if (e is not Mygame.Core.Collision.ISolid)
                     continue;
 
                 if (e.Collider != null && e.Collider.Bounds.Intersects(rect))
@@ -87,53 +115,114 @@ namespace Mygame.Core.Collision
         {
             var result = new MoveResult();
 
-            // X
-            if (dx != 0)
-            {
-                var nextPos = new Vector2(position.X + dx, position.Y);
-                var nextRect = RectAt(entity, nextPos);
-
-                if (!IntersectsAny(nextRect, ignore: entity))
-                    position = nextPos;
-                else
-                {
-                    if (dx < 0) result.HitLeft = true;
-                    if (dx > 0) result.HitRight = true;
-                }
-            }
-
-            // Y
-            if (dy != 0)
-            {
-                var nextPos = new Vector2(position.X, position.Y + dy);
-                var nextRect = RectAt(entity, nextPos);
-
-                if (!IntersectsAny(nextRect, ignore: entity))
-                    position = nextPos;
-                else
-                {
-                    if (dy < 0) result.HitTop = true;
-                    if (dy > 0) result.HitBottom = true;
-                }
-            }
+            MoveAxis(entity, ref position, dx, 0f, result); // X
+            MoveAxis(entity, ref position, 0f, dy, result); // Y
 
             return result;
+
+            // OUDE CODE X
+            //if (dx != 0)
+            //{
+            //    var nextPos = new Vector2(position.X + dx, position.Y);
+            //    var nextRect = RectAt(entity, nextPos);
+
+            //    if (!IntersectsAny(nextRect, ignore: entity))
+            //        position = nextPos;
+            //    else
+            //    {
+            //        if (dx < 0) result.HitLeft = true;
+            //        if (dx > 0) result.HitRight = true;
+            //    }
+            //}
+
+            //// Y
+            //if (dy != 0)
+            //{
+            //    var nextPos = new Vector2(position.X, position.Y + dy);
+            //    var nextRect = RectAt(entity, nextPos);
+
+            //    if (!IntersectsAny(nextRect, ignore: entity))
+            //        position = nextPos;
+            //    else
+            //    {
+            //        if (dy < 0) result.HitTop = true;
+            //        if (dy > 0) result.HitBottom = true;
+            //    }
+            //}
+
+            //return result;
         }
 
 
-        private static Rectangle RectAt(IEntity e, Vector2 pos)
+        // Nodig voor strakke collisions
+        private void MoveAxis(IEntity entity, ref Vector2 position, float dx, float dy, MoveResult result)
         {
-            if (e.Collider is not RectCollider)
+            float amount = dx != 0 ? dx : dy;
+            if (amount == 0) return;
+
+            int dir = Math.Sign(amount);       // -1 of +1
+            float abs = MathF.Abs(amount);
+
+            int whole = (int)MathF.Floor(abs); // hele pixels
+            float rem = abs - whole;           // remainder 0..1
+
+            // 1) hele pixels stap-voor-stap
+            for (int i = 0; i < whole; i++)
             {
-                // Fallback: if collider isn't RectCollider, we can't easily offset it.
-                // In this project we use RectCollider everywhere.
+                var nextPos = new Vector2(
+                    position.X + (dx != 0 ? dir : 0),
+                    position.Y + (dy != 0 ? dir : 0)
+                );
+
+                var nextRect = RectAt(entity, nextPos);
+
+                if (!IntersectsAny(nextRect, ignore: entity))
+                {
+                    position = nextPos;
+                }
+                else
+                {
+                    SetHitFlags(dx, dy, dir, result);
+                    return; // stop met bewegen op deze as
+                }
+            }
+        }
+
+
+        //Nodig voor strakke collisions
+            private static void SetHitFlags(float dx, float dy, int dir, MoveResult result)
+            {
+                if (dx != 0)
+                {
+                    if (dir < 0) result.HitLeft = true;
+                    else result.HitRight = true;
+                }
+                else if (dy != 0)
+                {
+                    if (dir < 0) result.HitTop = true;
+                    else result.HitBottom = true;
+                }
+            }
+
+            private static Rectangle RectAt(IEntity e, Vector2 pos)
+            {
+                if (e.Collider is RectCollider rc)
+                {
+                    return new Rectangle(
+                        (int)MathF.Round(pos.X) + rc.Offset.X,
+                        (int)MathF.Round(pos.Y) + rc.Offset.Y,
+                        rc.Size.X,
+                        rc.Size.Y
+                    );
+                }
+
                 return e.Collider?.Bounds ?? Rectangle.Empty;
             }
 
-            // We recompute by temporarily deriving from bounds size and origin at pos.
-            // Assumption: offset = 0 for simplicity.
-            var b = e.Collider!.Bounds;
-            return new Rectangle((int)pos.X, (int)pos.Y, b.Width, b.Height);
+        public void Unregister(IEntity entity)
+        {
+            _collidables.Remove(entity);
         }
+
     }
-}
+} 

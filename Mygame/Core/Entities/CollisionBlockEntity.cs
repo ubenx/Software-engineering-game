@@ -5,7 +5,7 @@ using Mygame.Core.GameLoop;
 
 namespace Mygame.Core.Entities
 {
-    public sealed class CollisionBlockEntity: IEntity
+    public sealed class CollisionBlockEntity: IEntity, ISolid
     {
         public Vector2 Position { get; set; }
         public ICollider Collider { get; }
