@@ -351,15 +351,15 @@ namespace Mygame.Core.States
 
 
             //Om collision zichtbaar te maken, tijdens debuggen
-            if (_whitePixel != null)
-            {
-                foreach (var e in _world.FindAll<IEntity>())
-                {
-                    if (e.Collider == null) continue;
-                    var r = e.Collider.Bounds;
-                    spriteBatch.Draw(_whitePixel, r, Color.Red * 0.35f);
-                }
-            }
+            //if (_whitePixel != null)
+            //{
+            //    foreach (var e in _world.FindAll<IEntity>())
+            //    {
+            //        if (e.Collider == null) continue;
+            //        var r = e.Collider.Bounds;
+            //        spriteBatch.Draw(_whitePixel, r, Color.Red * 0.35f);
+            //    }
+            //}
 
             spriteBatch.End();
 
